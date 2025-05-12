@@ -8,7 +8,7 @@
         
         
         <link rel="shortcut icon" href="../img/favicon.ico">
-        <title>PathCrossingUnoptimized - My Docs</title>
+        <title>PathCrossing - My Docs</title>
         <link href="../css/bootstrap.min.css" rel="stylesheet">
         <link href="../css/fontawesome.min.css" rel="stylesheet">
         <link href="../css/brands.min.css" rel="stylesheet">
@@ -38,7 +38,10 @@
                                 <a href=".." class="nav-link">l33tcode Solutions for JD Pierce</a>
                             </li>
                             <li class="nav-item">
-                                <a href="./" class="nav-link active" aria-current="page">PathCrossingUnoptimized</a>
+                                <a href="../Finding3DigitEvenNumbers/" class="nav-link">Finding3DigitEvenNumbers</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="./" class="nav-link active" aria-current="page">PathCrossing</a>
                             </li>
                         </ul>
 
@@ -49,7 +52,7 @@
                             </a>
                         </li>
                             <li class="nav-item">
-                                <a rel="prev" href=".." class="nav-link">
+                                <a rel="prev" href="../Finding3DigitEvenNumbers/" class="nav-link">
                                     <i class="fa fa-arrow-left"></i> Previous
                                 </a>
                             </li>
@@ -102,7 +105,8 @@
 
 <p><a href="https://leetcode.com/problems/path-crossing">https://leetcode.com/problems/path-crossing</a></p>
 <h1 id="intuition">Intuition</h1>
-<p>Implement an Unoptimized Solution by just recording each traveled node.</p>
+<p>Implement an unoptimized solution by just recording each traveled node.</p>
+<p><strong>NOTE: after a ton of analysis of the proposed solutions on l33tcode, I can confirm that this solution is actually quite well optimized - there does not seem to be a trick capable of detecting a crossing without recording each and every position</strong></p>
 <h1 id="approach">Approach</h1>
 <ul>
 <li>Record each traveled node by combining X and Y into a single number and store in a HashSet</li>
@@ -110,28 +114,29 @@
 </ul>
 <h1 id="complexity">Complexity</h1>
 <p>Time complexity:
-$$O(n)$$ (iterate through each position once)</p>
+<code>O(n)</code> (iterate through each position once)</p>
 <p>Space complexity:
-$$O(n)$$ (store each position as hash)</p>
+<code>O(n)</code> (store each position as hash)</p>
 <h1 id="code">Code</h1>
-<pre><code>public static class Extensions 
+<pre><code>public class Solution
 {
-    public static int GetHash(this System.Drawing.Point point)
-    {
-        return ((point.X&lt;&lt;16) | ((point.Y) &amp; 0xffff));
+    class PointComparer : IEqualityComparer&lt;System.Drawing.Point&gt; {
+        public bool Equals(System.Drawing.Point x, System.Drawing.Point y) {
+            return x.X == y.X &amp;&amp; x.Y == y.Y;
+        }
+
+        public int GetHashCode(System.Drawing.Point obj) {
+            return (obj.Y &lt;&lt; 16) ^ obj.X;
+        }
     }
-}
-public class Solution
-{
-    private HashSet&lt;int&gt; hashes = new HashSet&lt;int&gt;();
+    private HashSet&lt;System.Drawing.Point&gt; hashes = new HashSet&lt;System.Drawing.Point&gt;(new PointComparer());
     private System.Drawing.Point currentPos = new System.Drawing.Point(0,0);
     private bool OccupyCurrentPos()
     {
-        var hash = currentPos.GetHash();
         //Console.WriteLine($&quot;Calculated hash {hash} for position {currentPos.X}, {currentPos.Y}&quot;);
-        if(hashes.Contains(hash))
+        if(hashes.Contains(currentPos))
             return true;
-        hashes.Add(hash);
+        hashes.Add(currentPos);
         return false;
     }
     public bool IsPathCrossing(string path)
