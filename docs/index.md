@@ -2,4 +2,4 @@
 
 ## Path-Crossing Problem
 - https://leetcode.com/problems/path-crossing
-- [Unoptimized Solution](PathCrossingUnoptimized.html)
+- [Unoptimized Solution](PathCrossingUnoptimized.md)
