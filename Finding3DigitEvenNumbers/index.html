@@ -8,7 +8,7 @@
         
         
         <link rel="shortcut icon" href="../img/favicon.ico">
-        <title>PathCrossingUnoptimized - My Docs</title>
+        <title>Finding3DigitEvenNumbers - My Docs</title>
         <link href="../css/bootstrap.min.css" rel="stylesheet">
         <link href="../css/fontawesome.min.css" rel="stylesheet">
         <link href="../css/brands.min.css" rel="stylesheet">
@@ -38,7 +38,10 @@
                                 <a href=".." class="nav-link">l33tcode Solutions for JD Pierce</a>
                             </li>
                             <li class="nav-item">
-                                <a href="./" class="nav-link active" aria-current="page">PathCrossingUnoptimized</a>
+                                <a href="./" class="nav-link active" aria-current="page">Finding3DigitEvenNumbers</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../PathCrossing/" class="nav-link">PathCrossing</a>
                             </li>
                         </ul>
 
@@ -54,7 +57,7 @@
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a rel="next" class="nav-link disabled">
+                                <a rel="next" href="../PathCrossing/" class="nav-link">
                                     Next <i class="fa fa-arrow-right"></i>
                                 </a>
                             </li>
@@ -100,67 +103,126 @@
 </div></div>
                     <div class="col-md-9" role="main">
 
-<p><a href="https://leetcode.com/problems/path-crossing">https://leetcode.com/problems/path-crossing</a></p>
+<p>[https://leetcode.com/problems/path-crossing<a href="https://leetcode.com/problems/finding-3-digit-even-numbers">https://leetcode.com/problems/finding-3-digit-even-numbers</a></p>
 <h1 id="intuition">Intuition</h1>
-<p>Implement an Unoptimized Solution by just recording each traveled node.</p>
+<p>My first thought was to use a sliding window to find all of the possible 3 digit groupings, then separately find each possible permutation of numbers within each grouping.</p>
+<p>This flawed first thinking stemmed from one issue off the get-go: <strong>I did NOT read the problem thorougly enough</strong> and thus I thought each group of 3 numbers had to be next to each other (consecutive). However, I later realized you could group any 3 numbers regardless of proximity, which later gave rise to the <code>ReduceDigits()</code> method which allows the solution to run somewhat performately.</p>
 <h1 id="approach">Approach</h1>
-<ul>
-<li>Record each traveled node by combining X and Y into a single number and store in a HashSet</li>
-<li>Iterate through all characters in the array until a previously traveled node is encountered, then exit.</li>
-</ul>
+<ol>
+<li>Reduce digits to a maximum of 3 of each digit (3 0's, 3 1's, etc.)</li>
+<li>Find all possible unique groupings of 3 digits from the pool</li>
+<li>Check for leading zero</li>
+<li>Check last digit is even</li>
+<li>Return all even numbers that have passed all criteria</li>
+</ol>
 <h1 id="complexity">Complexity</h1>
+<ul>
+<li>
 <p>Time complexity:
-$$O(n)$$ (iterate through each position once)</p>
+Essentially <code>O(n)</code> but it's a bit of a complicated calculation - note there is an aboslute maximum of n=30 (3*10)</p>
+</li>
+<li>
 <p>Space complexity:
-$$O(n)$$ (store each position as hash)</p>
+Also should be linear, so <code>O(n)</code></p>
+</li>
+</ul>
 <h1 id="code">Code</h1>
-<pre><code>public static class Extensions 
-{
-    public static int GetHash(this System.Drawing.Point point)
+<pre><code>class TupleComparer : IEqualityComparer&lt;Tuple&lt;int,int,int&gt;&gt; {
+    public bool Equals(Tuple&lt;int,int,int&gt; x, Tuple&lt;int,int,int&gt; y)
     {
-        return ((point.X&lt;&lt;16) | ((point.Y) &amp; 0xffff));
+        var x_ordered = new List&lt;int&gt;(){x.Item1, x.Item2, x.Item3};
+        x_ordered.Sort();
+        var y_ordered = new List&lt;int&gt;(){y.Item1, y.Item2, y.Item3};
+        y_ordered.Sort();
+        return x_ordered[0] == y_ordered[0] &amp;&amp; x_ordered[1] == y_ordered[1] &amp;&amp; x_ordered[2] == y_ordered[2];
+    }
+
+    public int GetHashCode(Tuple&lt;int,int,int&gt; source)
+    {
+        int hash = 0;
+        hash = hash ^ source.Item1.GetHashCode();
+        hash = hash ^ source.Item2.GetHashCode();
+        hash = hash ^ source.Item3.GetHashCode();
+        return hash;
     }
 }
-public class Solution
-{
-    private HashSet&lt;int&gt; hashes = new HashSet&lt;int&gt;();
-    private System.Drawing.Point currentPos = new System.Drawing.Point(0,0);
-    private bool OccupyCurrentPos()
+public class Solution {
+    public void GetPermutations(Tuple&lt;int,int,int&gt; digits, ref HashSet&lt;int&gt; hashes)
     {
-        var hash = currentPos.GetHash();
-        //Console.WriteLine($&quot;Calculated hash {hash} for position {currentPos.X}, {currentPos.Y}&quot;);
-        if(hashes.Contains(hash))
-            return true;
-        hashes.Add(hash);
-        return false;
-    }
-    public bool IsPathCrossing(string path)
-    {
-        OccupyCurrentPos();
-        foreach(char c in path.ToLower())
+        if(digits.Item1 != 0)
         {
-            switch(c)
+            if(digits.Item3 % 2 == 0)
+                hashes.Add(digits.Item1 * 100 + digits.Item2 * 10 + digits.Item3);
+            if(digits.Item2 % 2 == 0)
+                hashes.Add(digits.Item1 * 100 + digits.Item3 * 10 + digits.Item2);
+        }
+        if(digits.Item2 != 0)
+        {
+            if(digits.Item3 % 2 == 0)
+                hashes.Add(digits.Item2 * 100 + digits.Item1 * 10 + digits.Item3);
+            if(digits.Item1 % 2 == 0)
+                hashes.Add(digits.Item2 * 100 + digits.Item3 * 10 + digits.Item1);
+        }
+        if(digits.Item3 != 0)
+        {
+            if(digits.Item2 % 2 == 0)
+                hashes.Add(digits.Item3 * 100 + digits.Item1 * 10 + digits.Item2);
+            if(digits.Item1 % 2 == 0)
+                hashes.Add(digits.Item3 * 100 + digits.Item2 * 10 + digits.Item1);
+        }
+
+    }
+    public HashSet&lt;Tuple&lt;int,int,int&gt;&gt; GetGroups(int[] digits)
+    {
+        HashSet&lt;Tuple&lt;int,int,int&gt;&gt; hashes = new HashSet&lt;Tuple&lt;int,int,int&gt;&gt;(new TupleComparer());
+        for(int i=0; i&lt;digits.Length; i++)
+        {
+            var item1 = digits[i];
+            for(int j=0; j&lt;digits.Length; j++)
             {
-                case 'n':
-                    currentPos.Y++;
-                    break;
-                case 's':
-                    currentPos.Y--;
-                    break;
-                case 'e':
-                    currentPos.X++;
-                    break;
-                case 'w':
-                    currentPos.X--;
-                    break;
-            }
-            if(OccupyCurrentPos())
-            {
-                //Console.WriteLine($&quot;Crossed at {currentPos.X},{currentPos.Y}&quot;);
-                return true;
+                if(i==j)
+                    continue;
+                var item2 = digits[j];
+                for(int k=0; k&lt;digits.Length; k++)
+                {
+                    if(i==k || j==k)
+                        continue;
+                    var item3 = digits[k];
+                    Tuple&lt;int,int,int&gt; group = new Tuple&lt;int,int,int&gt;(item1, item2, item3);
+                    hashes.Add(group);
+                }
             }
         }
-        return false;
+        return hashes;
+    }
+    int[] ReduceDigits(int[] digits)
+    {
+        List&lt;int&gt; new_digits = new List&lt;int&gt;();
+        for(int i=0; i&lt;10; i++)
+        {
+            int count = digits.Count(d =&gt; d==i);
+            for(int j=0; j&lt;count &amp;&amp; j&lt;=3; j++)
+            {
+                new_digits.Add(i);
+            }
+        }
+        return new_digits.ToArray();
+    }
+    public int[] FindEvenNumbers(int[] digits)
+    {
+        var new_digits = ReduceDigits(digits);
+        var groups = GetGroups(new_digits);
+        Console.WriteLine($&quot;Found {groups.Count()} groups:&quot;);
+        foreach(var group in groups)
+            Console.WriteLine($&quot;{group.Item1}{group.Item2}{group.Item3}&quot;);
+        HashSet&lt;int&gt; evenNums = new HashSet&lt;int&gt;();
+        foreach(var group in groups)
+        {
+            GetPermutations(group, ref evenNums);
+        }
+        var result = evenNums.ToList();
+        result.Sort();
+        return result.ToArray();
     }
 }
 </code></pre></div>
