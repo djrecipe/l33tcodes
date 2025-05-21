@@ -8,7 +8,7 @@
         
         
         <link rel="shortcut icon" href="../img/favicon.ico">
-        <title>PathCrossing - My Docs</title>
+        <title>SetMatrixZeros - My Docs</title>
         <link href="../css/bootstrap.min.css" rel="stylesheet">
         <link href="../css/fontawesome.min.css" rel="stylesheet">
         <link href="../css/brands.min.css" rel="stylesheet">
@@ -41,10 +41,10 @@
                                 <a href="../Finding3DigitEvenNumbers/" class="nav-link">Finding3DigitEvenNumbers</a>
                             </li>
                             <li class="nav-item">
-                                <a href="./" class="nav-link active" aria-current="page">PathCrossing</a>
+                                <a href="../PathCrossing/" class="nav-link">PathCrossing</a>
                             </li>
                             <li class="nav-item">
-                                <a href="../SetMatrixZeros/" class="nav-link">SetMatrixZeros</a>
+                                <a href="./" class="nav-link active" aria-current="page">SetMatrixZeros</a>
                             </li>
                             <li class="nav-item">
                                 <a href="../TotalCharactersInStringAfterTransformations/" class="nav-link">TotalCharactersInStringAfterTransformations</a>
@@ -58,12 +58,12 @@
                             </a>
                         </li>
                             <li class="nav-item">
-                                <a rel="prev" href="../Finding3DigitEvenNumbers/" class="nav-link">
+                                <a rel="prev" href="../PathCrossing/" class="nav-link">
                                     <i class="fa fa-arrow-left"></i> Previous
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a rel="next" href="../SetMatrixZeros/" class="nav-link">
+                                <a rel="next" href="../TotalCharactersInStringAfterTransformations/" class="nav-link">
                                     Next <i class="fa fa-arrow-right"></i>
                                 </a>
                             </li>
@@ -95,6 +95,11 @@
               </ul>
             </li>
             
+            <li class="nav-item" data-bs-level="1"><a href="#optimization" class="nav-link">Optimization</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
             <li class="nav-item" data-bs-level="1"><a href="#complexity" class="nav-link">Complexity</a>
               <ul class="nav flex-column">
               </ul>
@@ -109,69 +114,59 @@
 </div></div>
                     <div class="col-md-9" role="main">
 
-<p><a href="https://leetcode.com/problems/path-crossing">https://leetcode.com/problems/path-crossing</a></p>
+<p><a href="https://leetcode.com/problems/set-matrix-zeroes">https://leetcode.com/problems/set-matrix-zeroes</a></p>
 <h1 id="intuition">Intuition</h1>
-<p>Implement an unoptimized solution by just recording each traveled node.</p>
-<p><strong>NOTE: after a ton of analysis of the proposed solutions on l33tcode, I can confirm that this solution is actually quite well optimized - there does not seem to be a trick capable of detecting a crossing without recording each and every position</strong></p>
+<p>I was careful enough to notice that the problem must be done <a href="https://en.wikipedia.org/wiki/In-place_algorithm">"in place"</a>, but I overcomplicated the requirements by thinking ONLY the original input matrix could be used (no additional lists could be used).</p>
 <h1 id="approach">Approach</h1>
-<ul>
-<li>Record each traveled node by combining X and Y into a single number and store in a HashSet</li>
-<li>Iterate through all characters in the array until a previously traveled node is encountered, then exit.</li>
-</ul>
+<p>My original approach was to iterate through the matrix until a zero was found. Once a zero was found, I would enter a recursive function which would zero out all adjacent cells in the row &amp; column of the "naturally occurring" zero, <em>while also</em> checking for more "naturally occurring" zeros. As usual, <strong>recursive functions rarely seem to be the most efficient answer with these solutions.</strong></p>
+<p>After submitting my solution and surprisingly passing (beating about 5% of people on both time and space), I think realized the stupidly easy optimal solution.</p>
+<h1 id="optimization">Optimization</h1>
+<p>The optimal solution you see below simply iterates through the matrix to find any cells with zero, and records the column and row index, but does not modify the matrix yet.</p>
+<p>Next - as a separate step (once all zeros have been found), then the accrued list of column and row indices is used to zero-out the necessary rows and columns. Very simple and no recursion necessary.</p>
 <h1 id="complexity">Complexity</h1>
-<p>Time complexity:
-<code>O(n)</code> (iterate through each position once)</p>
-<p>Space complexity:
-<code>O(n)</code> (store each position as hash)</p>
+<ul>
+<li>Time complexity:</li>
+</ul>
+<p><code>O(n)</code></p>
+<ul>
+<li>Space complexity:</li>
+</ul>
+<p><code>O(zr + zc)</code> where <code>zr</code> is the number of rows with zeros and <code>zc</code> is the number of columns with zeros</p>
 <h1 id="code">Code</h1>
 <pre><code>public class Solution
 {
-    class PointComparer : IEqualityComparer&lt;System.Drawing.Point&gt; {
-        public bool Equals(System.Drawing.Point x, System.Drawing.Point y) {
-            return x.X == y.X &amp;&amp; x.Y == y.Y;
+    public void SetZeroes(int[][] matrix)
+    {
+        HashSet&lt;int&gt; zerod_rows = new HashSet&lt;int&gt;();
+        HashSet&lt;int&gt; zerod_cols = new HashSet&lt;int&gt;();
+
+        // iterate through each element
+        for(int row=0; row&lt;matrix.Length; row++)
+        {
+            for(int col=0; col&lt;matrix[0].Length; col++)
+            {
+                // check if element is zero
+                if(matrix[row][col]==0)
+                {
+                    // record row &amp; col
+                    zerod_rows.Add(row);
+                    zerod_cols.Add(col);
+                }
+            }
+        }
+        // apply zero to appropriate cols
+        foreach(var col in zerod_cols)
+        {
+            for(int row=0; row&lt;matrix.Length; row++)
+                matrix[row][col] = 0;
+        }
+        // apply zero to appropriate rows
+        foreach(var row in zerod_rows)
+        {
+            for(int col=0; col&lt;matrix[0].Length; col++)
+                matrix[row][col] = 0;
         }
 
-        public int GetHashCode(System.Drawing.Point obj) {
-            return (obj.Y &lt;&lt; 16) ^ obj.X;
-        }
-    }
-    private HashSet&lt;System.Drawing.Point&gt; hashes = new HashSet&lt;System.Drawing.Point&gt;(new PointComparer());
-    private System.Drawing.Point currentPos = new System.Drawing.Point(0,0);
-    private bool OccupyCurrentPos()
-    {
-        //Console.WriteLine($&quot;Calculated hash {hash} for position {currentPos.X}, {currentPos.Y}&quot;);
-        if(hashes.Contains(currentPos))
-            return true;
-        hashes.Add(currentPos);
-        return false;
-    }
-    public bool IsPathCrossing(string path)
-    {
-        OccupyCurrentPos();
-        foreach(char c in path.ToLower())
-        {
-            switch(c)
-            {
-                case 'n':
-                    currentPos.Y++;
-                    break;
-                case 's':
-                    currentPos.Y--;
-                    break;
-                case 'e':
-                    currentPos.X++;
-                    break;
-                case 'w':
-                    currentPos.X--;
-                    break;
-            }
-            if(OccupyCurrentPos())
-            {
-                //Console.WriteLine($&quot;Crossed at {currentPos.X},{currentPos.Y}&quot;);
-                return true;
-            }
-        }
-        return false;
     }
 }
 </code></pre></div>
